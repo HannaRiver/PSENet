@@ -119,9 +119,17 @@ def perimeter(bbox):
         peri += dist(bbox[i], bbox[(i + 1) % bbox.shape[0]])
     return peri
 
+def min_distance(bbox):
+    min_dis = 100000000
+    for i in range(bbox.shape[0]):
+        tmp_dis = dist(bbox[i], bbox[(i + 1) % bbox.shape[0]])/4
+        min_dis = tmp_dis if tmp_dis < min_dis else min_dis
+    return min_dis
+
 def shrink(bboxes, rate, max_shr=20):
     rate = rate * rate
     shrinked_bboxes = []
+    max_shr = min([min_distance(i) for i in bboxes] + [max_shr])
     for bbox in bboxes:
         area = plg.Polygon(bbox).area()
         peri = perimeter(bbox)

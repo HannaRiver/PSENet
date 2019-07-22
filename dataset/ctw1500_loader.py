@@ -35,10 +35,10 @@ def get_bboxes(img, gt_path):
         line = util.str.remove_all(line, '\xef\xbb\xbf')
         gt = util.str.split(line, ',')
 
-        x1 = np.int(gt[0])
-        y1 = np.int(gt[1])
+        x1 = np.int(float(gt[0]))
+        y1 = np.int(float(gt[1]))
 
-        bbox = [np.int(gt[i]) for i in range(4, 32)]
+        bbox = [np.int(float(gt[i])) for i in range(4, 32)]
         bbox = np.asarray(bbox) + ([x1 * 1.0, y1 * 1.0] * 14)
         bbox = np.asarray(bbox) / ([w * 1.0, h * 1.0] * 14)
         
@@ -120,9 +120,17 @@ def perimeter(bbox):
         peri += dist(bbox[i], bbox[(i + 1) % bbox.shape[0]])
     return peri
 
+def min_distance(bbox):
+    min_dis = 100000000
+    for i in range(bbox.shape[0]):
+        tmp_dis = dist(bbox[i], bbox[(i + 1) % bbox.shape[0]])/4
+        min_dis = tmp_dis if tmp_dis < min_dis else min_dis
+    return min_dis
+
 def shrink(bboxes, rate, max_shr=20):
     rate = rate * rate
     shrinked_bboxes = []
+    max_shr = min([min_distance(i) for i in bboxes] + [max_shr])
     for bbox in bboxes:
         area = plg.Polygon(bbox).area()
         peri = perimeter(bbox)
@@ -136,7 +144,7 @@ def shrink(bboxes, rate, max_shr=20):
             shrinked_bboxes.append(bbox)
             continue
         
-        shrinked_bbox = np.array(shrinked_bbox[0])
+        shrinked_bbox = np.array(shrinked_bbox)[0]
         if shrinked_bbox.shape[0] <= 2:
             shrinked_bboxes.append(bbox)
             continue
@@ -144,6 +152,7 @@ def shrink(bboxes, rate, max_shr=20):
         shrinked_bboxes.append(shrinked_bbox)
     
     return np.array(shrinked_bboxes)
+
 
 class CTW1500Loader(data.Dataset):
     def __init__(self, is_transform=False, img_size=None, kernel_num=7, min_scale=0.4):

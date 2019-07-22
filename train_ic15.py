@@ -66,7 +66,7 @@ def dice_loss(input, target, mask):
     input = input * mask
     target = target * mask
 
-    a = torch.sum(input * target, 1)
+    a = torch.sum(input * target, 1) + 0.001
     b = torch.sum(input * input, 1) + 0.001
     c = torch.sum(target * target, 1) + 0.001
     d = (2 * a) / (b + c)
